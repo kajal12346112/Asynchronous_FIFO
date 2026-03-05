@@ -1,0 +1,27 @@
+module fifo_mem (
+    input wr_clk,
+    input wr_en,
+    input [2:0] waddr,
+    input [7:0] data_in,
+
+    input rd_clk,
+    input rd_en,
+    input [2:0] raddr,
+    output reg [7:0] data_out
+);
+
+reg [7:0] mem [0:7];
+
+always @(posedge wr_clk)
+begin
+    if (wr_en)
+        mem[waddr] <= data_in;
+end
+
+always @(posedge rd_clk)
+begin
+    if (rd_en)
+        data_out <= mem[raddr];
+end
+
+endmodule

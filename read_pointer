@@ -1,0 +1,18 @@
+module read_ptr (
+    input rd_clk,
+    input rst,
+    input rd_en,
+    input empty,
+
+    output reg [2:0] rptr
+);
+
+always @(posedge rd_clk or posedge rst)
+begin
+    if (rst)
+        rptr <= 0;
+    else if (rd_en && !empty)
+        rptr <= rptr + 1;
+end
+
+endmodule

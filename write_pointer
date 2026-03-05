@@ -1,0 +1,18 @@
+module write_ptr (
+    input wr_clk,
+    input rst,
+    input wr_en,
+    input full,
+
+    output reg [2:0] wptr
+);
+
+always @(posedge wr_clk or posedge rst)
+begin
+    if (rst)
+        wptr <= 0;
+    else if (wr_en && !full)
+        wptr <= wptr + 1;
+end
+
+endmodule
