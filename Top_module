@@ -1,69 +1,51 @@
-module async_fifo_top (
-    input wr_clk,
-    input rd_clk,
-    input rst,
+module async_fifo_top #(parameter DATA_WIDTH = 8, ADDR_SIZE = 3)(
+    input wr_clk, rd_clk, rst,
+    input wr_en, rd_en,
+    input [DATA_WIDTH-1:0] wdata,
 
-    input wr_en,
-    input rd_en,
-    input [7:0] data_in,
-
-    output [7:0] data_out,
-    output full,
-    output empty
+    output [DATA_WIDTH-1:0] rdata,
+    output full, empty
 );
 
-wire [2:0] wptr;
-wire [2:0] rptr;
+wire [ADDR_SIZE:0] wptr_bin, wptr_gray;
+wire [ADDR_SIZE:0] rptr_bin, rptr_gray;
 
-wire [2:0] rptr_sync;
-wire [2:0] wptr_sync;
+wire [ADDR_SIZE:0] wptr_gray_sync, rptr_gray_sync;
 
-assign full  = ((wptr + 1) == rptr_sync);
-assign empty = (rptr == wptr_sync);
-
-
-// modules
-
-write_ptr WP (
-    .wr_clk(wr_clk),
-    .rst(rst),
-    .wr_en(wr_en),
-    .full(full),
-    .wptr(wptr)
+// Write pointer
+write_ptr_gray #(ADDR_SIZE) wptr (
+    wr_clk, rst, wr_en, full,
+    wptr_bin, wptr_gray
 );
 
-read_ptr RP (
-    .rd_clk(rd_clk),
-    .rst(rst),
-    .rd_en(rd_en),
-    .empty(empty),
-    .rptr(rptr)
+// Read pointer
+read_ptr_gray #(ADDR_SIZE) rptr (
+    rd_clk, rst, rd_en, empty,
+    rptr_bin, rptr_gray
 );
 
-sync_ptr SYNC_R (
-    .clk(wr_clk),
-    .rst(rst),
-    .ptr_in(rptr),
-    .ptr_out(rptr_sync)
+// Synchronizers
+sync_ptr #(ADDR_SIZE) sync_w2r (
+    rd_clk, rst, wptr_gray, wptr_gray_sync
 );
 
-sync_ptr SYNC_W (
-    .clk(rd_clk),
-    .rst(rst),
-    .ptr_in(wptr),
-    .ptr_out(wptr_sync)
+sync_ptr #(ADDR_SIZE) sync_r2w (
+    wr_clk, rst, rptr_gray, rptr_gray_sync
 );
 
-fifo_mem MEM (
-    .wr_clk(wr_clk),
-    .wr_en(wr_en && !full),
-    .waddr(wptr),
-    .data_in(data_in),
+// Memory
+fifo_mem #(DATA_WIDTH, ADDR_SIZE) mem (
+    wr_clk, wr_en, wptr_bin[ADDR_SIZE-1:0], wdata,
+    rd_clk, rptr_bin[ADDR_SIZE-1:0], rdata
+);
 
-    .rd_clk(rd_clk),
-    .rd_en(rd_en && !empty),
-    .raddr(rptr),
-    .data_out(data_out)
+// Flags
+empty_flag #(ADDR_SIZE) emp (
+    rptr_gray, wptr_gray_sync, empty
+);
+
+full_flag #(ADDR_SIZE) ful (
+    wptr_gray, rptr_gray_sync, full
 );
 
 endmodule
