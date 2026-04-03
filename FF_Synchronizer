@@ -1,12 +1,11 @@
-module sync_ptr (
+module sync_ptr #(parameter SIZE = 3)(
     input clk,
     input rst,
-    input [2:0] ptr_in,
-
-    output reg [2:0] ptr_out
+    input [SIZE:0] ptr_in,
+    output reg [SIZE:0] ptr_out
 );
 
-reg [2:0] temp;
+reg [SIZE:0] temp;
 
 always @(posedge clk or posedge rst)
 begin
