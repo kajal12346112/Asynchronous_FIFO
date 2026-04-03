@@ -1,18 +1,27 @@
-module write_ptr (
+module write_ptr_gray #(parameter SIZE = 3)(
     input wr_clk,
     input rst,
     input wr_en,
     input full,
 
-    output reg [2:0] wptr
+    output reg [SIZE:0] wptr_bin,
+    output reg [SIZE:0] wptr_gray
 );
 
 always @(posedge wr_clk or posedge rst)
 begin
     if (rst)
-        wptr <= 0;
+        wptr_bin <= 0;
     else if (wr_en && !full)
-        wptr <= wptr + 1;
+        wptr_bin <= wptr_bin + 1;
+end
+
+always @(posedge wr_clk or posedge rst)
+begin
+    if (rst)
+        wptr_gray <= 0;
+    else
+        wptr_gray <= (wptr_bin >> 1) ^ wptr_bin;
 end
 
 endmodule
