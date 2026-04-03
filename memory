@@ -1,27 +1,27 @@
-module fifo_mem (
+module fifo_mem #(parameter DATA_WIDTH = 8, ADDR_SIZE = 3)(
     input wr_clk,
     input wr_en,
-    input [2:0] waddr,
-    input [7:0] data_in,
+    input [ADDR_SIZE-1:0] waddr,
+    input [DATA_WIDTH-1:0] wdata,
 
     input rd_clk,
-    input rd_en,
-    input [2:0] raddr,
-    output reg [7:0] data_out
+    input [ADDR_SIZE-1:0] raddr,
+    output reg [DATA_WIDTH-1:0] rdata
 );
 
-reg [7:0] mem [0:7];
+reg [DATA_WIDTH-1:0] mem [0:(1<<ADDR_SIZE)-1];
 
+// Write
 always @(posedge wr_clk)
 begin
     if (wr_en)
-        mem[waddr] <= data_in;
+        mem[waddr] <= wdata;
 end
 
+// Read
 always @(posedge rd_clk)
 begin
-    if (rd_en)
-        data_out <= mem[raddr];
+    rdata <= mem[raddr];
 end
 
 endmodule
